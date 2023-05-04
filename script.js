@@ -1,36 +1,52 @@
-// Get the output tbody element
-const output = document.getElementById("output");
+const res = document.getElementById("output");
 
-// Create an array of 3 Promises that resolve after a random time between 1 and 3 seconds
 const promises = [
-  new Promise(resolve => setTimeout(() => resolve(Math.floor(Math.random() * 3) + 1), Math.floor(Math.random() * 3000) + 1000)),
-  new Promise(resolve => setTimeout(() => resolve(Math.floor(Math.random() * 3) + 1), Math.floor(Math.random() * 3000) + 1000)),
-  new Promise(resolve => setTimeout(() => resolve(Math.floor(Math.random() * 3) + 1), Math.floor(Math.random() * 3000) + 1000))
+  new Promise((resolve) => {
+    const time = Math.floor(Math.random() * 3 + 1) * 1000;
+    setTimeout(() => resolve({ name: "Promise 1", time: time / 1000 }), time);
+  }),
+  new Promise((resolve) => {
+    const time = Math.floor(Math.random() * 3 + 1) * 1000;
+    setTimeout(() => resolve({ name: "Promise 2", time: time / 1000 }), time);
+  }),
+  new Promise((resolve) => {
+    const time = Math.floor(Math.random() * 3 + 1) * 1000;
+    setTimeout(() => resolve({ name: "Promise 3", time: time / 1000 }), time);
+  }),
 ];
 
-// Add a row to the table with the text "Loading..." while waiting for the promises to resolve
-output.innerHTML = '<tr><td colspan="2">Loading...</td></tr>';
+async function callFns() {
+  const start = new Date();
+  // Use Promise.all to wait for all Promises to resolve
+  res.innerHTML += `
+            <tr id="loading">
+                <td colspan=2>Loading...</td>
+            </tr>
+          `;
+  await Promise.all(promises)
+    .then((results) => {
+      res.innerHTML = ``;
+      // Log the array of results
+      results.forEach((e) => {
+        res.innerHTML += `
+            <tr>
+                <td>${e.name}</td>
+                <td>${e.time}</td>
+            </tr>
+          `;
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
 
-// Wait for all promises to resolve using Promise.all()
-Promise.all(promises)
-  .then(results => {
-    // Remove the "Loading..." row from the table
-    output.innerHTML = "";
-
-    // Add a row for each resolved promise with the promise name and time taken
-    for (let i = 0; i < results.length; i++) {
-      const row = document.createElement("tr");
-      row.innerHTML = `<td>Promise ${i + 1}</td><td>${results[i]}</td>`;
-      output.appendChild(row);
-    }
-
-    // Add a row with the total time taken to resolve all promises
-    const totalRow = document.createElement("tr");
-    const totalTime = results.reduce((acc, curr) => acc + curr, 0);
-    totalRow.innerHTML = `<td>Total</td><td>${totalTime.toFixed(3)}</td>`;
-    output.appendChild(totalRow);
-  })
-  .catch(error => {
-    // Handle errors here
-    console.error(error);
-  });
+  const end = new Date();
+  const timeInMillis = end - start;
+  res.innerHTML += `
+            <tr>
+                <td>Total</td>
+                <td>${timeInMillis / 1000}</td>
+            </tr>
+          `;
+}
+callFns();
